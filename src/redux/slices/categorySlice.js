@@ -17,6 +17,15 @@ const initialState = {
     isCategoryCreated: false,
     isCategoryCreatedError: false,
 
+    // update category
+    isCategoryUpdating: false,
+    isCategoryUpdated: false,
+    isCategoryUpdatedError: false,
+
+    // Delete category
+    isCategoryDeleting: false,
+    isCategoryDeleted: false,
+    isCategoryDeletedError: false,
 
 };
 
@@ -49,6 +58,31 @@ export const createCategory = createAsyncThunk(
 );
 
 
+export const updateCategory = createAsyncThunk(
+    "updateCategory",
+    async (data, thunkAPI) => {
+        try {
+            const response = await category.updateCategory(data);
+            return thunkAPI.fulfillWithValue(response.data);
+        } catch (error) {
+            console.log("Get all categories error:", error);
+            return thunkAPI.rejectWithValue(error);
+        }
+    }
+);
+
+export const deleteCategory = createAsyncThunk(
+    "deleteCategory",
+    async (id, thunkAPI) => {
+        try {
+            const response = await category.deleteCategory(id);
+            return thunkAPI.fulfillWithValue(response.data);
+        } catch (error) {
+            console.log("Get all categories error:", error);
+            return thunkAPI.rejectWithValue(error);
+        }
+    }
+);
 
 const categorySlice = createSlice({
     name: 'category',
@@ -87,6 +121,39 @@ const categorySlice = createSlice({
                 state.isCategoryCreating = false;
                 state.isCategoryCreated = false;
                 state.isCategoryCreatedError = true;
+            })
+
+            .addCase(updateCategory.pending, (state) => {
+                state.isCategoryUpdating = true;
+                state.isCategoryUpdated = false;
+                state.isCategoryUpdatedError = false
+            })
+            .addCase(updateCategory.fulfilled, (state) => {
+                state.isCategoryUpdating = false;
+                state.isCategoryUpdated = true;
+                state.isCategoryUpdatedError = false;
+            })
+
+            .addCase(updateCategory.rejected, (state, action) => {
+                state.isCategoryUpdating = false;
+                state.isCategoryUpdated = false;
+                state.isCategoryUpdatedError = true;
+            })
+
+            .addCase(deleteCategory.pending, (state) => {
+                state.isCategoryDeleting = true;
+                state.isCategoryDeleted = false;
+                state.isCategoryDeletedError = false
+            })
+            .addCase(deleteCategory.fulfilled, (state) => {
+                state.isCategoryDeleting = false;
+                state.isCategoryDeleted = true;
+                state.isCategoryDeletedError = false;
+            })
+            .addCase(deleteCategory.rejected, (state, action) => {
+                state.isCategoryDeleting = false;
+                state.isCategoryDeleted = false;
+                state.isCategoryDeletedError = true;
             })
 
     },

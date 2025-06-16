@@ -7,11 +7,11 @@ import expense from '../services/expense';
 
 const initialState = {
 
-    // get all categories
-    // isExpenseAllLoading: false,
-    // isExpenseAllLoaded: false,
-    // isExpenseAllLoadError: false,
-    // categories: [],
+    // get all // expenses
+    isExpenseAllLoading: false,
+    isExpenseAllLoaded: false,
+    isExpenseAllLoadError: false,
+    expenses: [],
 
     // create Expense
     isExpenseCreating: false,
@@ -19,21 +19,33 @@ const initialState = {
     isExpenseCreatedError: false,
 
 
+    // update expense
+    isExpenseUpdating: false,
+    isExpenseUpdated: false,
+    isExpenseUpdateError: false,
+
+
+    // delete Expense
+    isExpenseDeleting: false,
+    isExpenseDeleted: false,
+    isExpenseDeleteError: false,
+
+
 };
 
 
-// export const getAllCategories = createAsyncThunk(
-//     "getAllCategories",
-//     async (_, thunkAPI) => {
-//         try {
-//             const response = await Expense.getCategories();
-//             return thunkAPI.fulfillWithValue(response.data.result);
-//         } catch (error) {
-//             console.log("Get all categories error:", error);
-//             return thunkAPI.rejectWithValue(error);
-//         }
-//     }
-// );
+export const getAllExpenses = createAsyncThunk(
+    "getAllExpenses",
+    async (month, thunkAPI) => {
+        try {
+            const response = await expense.getExpenses(month);
+            return thunkAPI.fulfillWithValue(response.data.result);
+        } catch (error) {
+            console.log("Get all expenses error:", error);
+            return thunkAPI.rejectWithValue(error);
+        }
+    }
+);
 
 
 export const createExpense = createAsyncThunk(
@@ -51,6 +63,32 @@ export const createExpense = createAsyncThunk(
 );
 
 
+export const updateExpense = createAsyncThunk(
+    "updateExpense",
+    async (data, thunkAPI) => {
+        try {
+            const response = await expense.updateExpense(data);
+            return thunkAPI.fulfillWithValue(response.data);
+        } catch (error) {
+            console.log("update Expense:", error);
+            return thunkAPI.rejectWithValue(error);
+        }
+    }
+);
+
+
+export const deleteExpense = createAsyncThunk(
+    "deleteExpense",
+    async (expenseId, thunkAPI) => {
+        try {
+            const response = await expense.deleteExpense(expenseId);
+            return thunkAPI.fulfillWithValue(response.data);
+        } catch (error) {
+            console.log("delete Expense:", error);
+            return thunkAPI.rejectWithValue(error);
+        }
+    }
+);
 
 const ExpenseSlice = createSlice({
     name: 'Expense',
@@ -58,22 +96,22 @@ const ExpenseSlice = createSlice({
     reducers: {},
     extraReducers: (builder) => {
         builder
-            // .addCase(getAllCategories.pending, (state) => {
-            //     state.isExpenseAllLoading = true;
-            //     state.isExpenseAllLoaded = false;
-            //     state.isExpenseAllLoadError = false
-            // })
-            // .addCase(getAllCategories.fulfilled, (state, action) => {
-            //     state.isExpenseAllLoading = false;
-            //     state.isExpenseAllLoaded = true;
-            //     state.isExpenseAllLoadError = false;
-            //     state.categories = action.payload;
-            // })
-            // .addCase(getAllCategories.rejected, (state, action) => {
-            //     state.isExpenseAllLoading = false;
-            //     state.isExpenseAllLoaded = false;
-            //     state.isExpenseAllLoadError = true;
-            // })
+            .addCase(getAllExpenses.pending, (state) => {
+                state.isExpenseAllLoading = true;
+                state.isExpenseAllLoaded = false;
+                state.isExpenseAllLoadError = false
+            })
+            .addCase(getAllExpenses.fulfilled, (state, action) => {
+                state.isExpenseAllLoading = false;
+                state.isExpenseAllLoaded = true;
+                state.isExpenseAllLoadError = false;
+                state.expenses = action.payload;
+            })
+            .addCase(getAllExpenses.rejected, (state, action) => {
+                state.isExpenseAllLoading = false;
+                state.isExpenseAllLoaded = false;
+                state.isExpenseAllLoadError = true;
+            })
 
             .addCase(createExpense.pending, (state) => {
                 state.isExpenseCreating = true;
@@ -90,6 +128,44 @@ const ExpenseSlice = createSlice({
                 state.isExpenseCreated = false;
                 state.isExpenseCreatedError = true;
             })
+
+            .addCase(updateExpense.pending, (state) => {
+                state.isExpenseUpdating = true;
+                state.isExpenseUpdated = false;
+                state.isExpenseUpdateError = false
+            })
+
+            .addCase(updateExpense.fulfilled, (state) => {
+                state.isExpenseUpdating = false;
+                state.isExpenseUpdated = true;
+                state.isExpenseUpdateError = false;
+            })
+
+            .addCase(updateExpense.rejected, (state, action) => {
+                state.isExpenseUpdating = false;
+                state.isExpenseUpdated = false;
+                state.isExpenseUpdateError = true;
+            })
+
+            .addCase(deleteExpense.pending, (state) => {
+                state.isExpenseDeleting = true;
+                state.isExpenseDeleted = false;
+                state.isExpenseDeleteError = false
+            })
+
+            .addCase(deleteExpense.fulfilled, (state) => {
+                state.isExpenseDeleting = false;
+                state.isExpenseDeleted = true;
+                state.isExpenseDeleteError = false;
+            })
+
+            .addCase(deleteExpense.rejected, (state, action) => {
+                state.isExpenseDeleting = false;
+                state.isExpenseDeleted = false;
+                state.isExpenseDeleteError = true;
+            })
+
+
 
     },
 });

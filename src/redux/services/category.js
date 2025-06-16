@@ -1,3 +1,4 @@
+import { deleteCategory } from '../../../../backend/src/controllers/category.controller';
 import axios from '../lib/axios';
 
 const category = {
@@ -5,7 +6,7 @@ const category = {
   getCategories: async () => {
     try {
       const result = await axios.get('/categories/get-all');
-    //   console.log('Fetched categories:', result);
+      //   console.log('Fetched categories:', result);
       return result;
     } catch (error) {
       console.error('Error fetching categories:', error);
@@ -23,7 +24,28 @@ const category = {
     }
   },
 
-    
+
+  updateCategory: async (data) => {
+    try {
+      const result = await axios.put(`/categories/update/${data.id}`, data);
+      return result;
+    } catch (error) {
+      console.error('Error updating category:', error);
+      throw error;
+    }
+  },
+
+  deleteCategory: async (id) => {
+    try {
+      const result = await axios.delete(`/categories/delete/${id}`);
+      return result;
+    } catch (error) {
+      console.error('Error deleting category:', error);
+      throw error;
+    }
+  }
+
+
 };
 
 export default category;

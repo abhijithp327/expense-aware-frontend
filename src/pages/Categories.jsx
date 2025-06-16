@@ -2,14 +2,27 @@ import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Plus, Edit2, Trash2, Folder, Search } from 'lucide-react';
 import { useDispatch } from 'react-redux';
-import { getAllCategories } from '../redux/slices/categorySlice';
+import { deleteCategory, getAllCategories } from '../redux/slices/categorySlice';
 import DashboardLayout from '../layouts/DashboardLayout';
+import EditCategoryModal from '../components/modals/EditCategoryModal';
+import DeleteConfirmModal from '../components/modals/DeleteConfirmModal';
+import { toast } from 'react-toastify';
+import AddCategoryModal from '../components/modals/AddCategoryModal';
+
 
 const Categories = () => {
+
     const dispatch = useDispatch();
+
+    const [addCategoryDialogOpen, setAddCategoryDialogOpen] = useState(false);
+    const [dialogOpen, setDialogOpen] = useState(false);
     const [categories, setCategories] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
+    const [selectedCategory, setSelectedCategory] = useState(null);
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [categoryToDelete, setCategoryToDelete] = useState(null);
     const [refreshTrigger, setRefreshTrigger] = useState(0);
+
 
     const refreshData = React.useCallback(() => {
         setRefreshTrigger(prev => prev + 1);
@@ -34,37 +47,47 @@ const Categories = () => {
         category.description?.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    const handleEdit = (categoryId) => {
-        // Handle edit category
-        console.log('Edit category:', categoryId);
+    const handleEdit = (category) => {
+        setSelectedCategory(category);
+        setDialogOpen(true);
     };
 
-    const handleDelete = (categoryId) => {
-        // Handle delete category
-        console.log('Delete category:', categoryId);
+
+    const handleDelete = (category) => {
+        setCategoryToDelete(category);
+        setDeleteDialogOpen(true);
     };
+
+    const confirmDelete = async () => {
+        try {
+            const response = await dispatch(deleteCategory(categoryToDelete._id));
+            if (response.payload.success) {
+                toast.success(response.payload.message);
+            } else {
+                toast.error(response.payload.message || "Failed to delete category");
+            }
+            setDeleteDialogOpen(false);
+            setCategoryToDelete(null);
+            refreshData();
+        } catch (error) {
+            console.error("Delete failed", error);
+        }
+    };
+
+
 
     return (
-        <DashboardLayout 
-            title="Categories" 
+        <DashboardLayout
+            title="Categories"
             description="Manage your expense categories"
             onRefresh={refreshData}
         >
             {/* Header Actions */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
-                <div className="flex items-center gap-4 flex-1">
-                    <div className="relative flex-1 max-w-md">
-                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                        <input
-                            type="text"
-                            placeholder="Search categories..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                        />
-                    </div>
-                </div>
-                <button className="px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 flex items-center gap-2">
+            <div className="flex flex-col sm:flex-row gap-4 justify-end items-end sm:items-center">
+
+                <button className="px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 flex items-center gap-2"
+                    onClick={() => setAddCategoryDialogOpen(true)}
+                >
                     <Plus className="w-4 h-4" />
                     Add Category
                 </button>
@@ -84,29 +107,8 @@ const Categories = () => {
                     </CardContent>
                 </Card>
 
-                <Card className="bg-gradient-to-br from-green-500 to-green-600 text-white border-0 shadow-lg">
-                    <CardContent className="p-4">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-green-100 text-sm font-medium">Active Categories</p>
-                                <p className="text-2xl font-bold">{categories.filter(cat => cat.isActive).length}</p>
-                            </div>
-                            <Folder className="w-8 h-8 text-green-200" />
-                        </div>
-                    </CardContent>
-                </Card>
 
-                <Card className="bg-gradient-to-br from-purple-500 to-purple-600 text-white border-0 shadow-lg">
-                    <CardContent className="p-4">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-purple-100 text-sm font-medium">Filtered Results</p>
-                                <p className="text-2xl font-bold">{filteredCategories.length}</p>
-                            </div>
-                            <Search className="w-8 h-8 text-purple-200" />
-                        </div>
-                    </CardContent>
-                </Card>
+
             </div>
 
             {/* Categories Grid */}
@@ -115,7 +117,7 @@ const Categories = () => {
                 {filteredCategories.length > 0 ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                         {filteredCategories.map((category) => (
-                            <Card key={category.id} className="hover:shadow-lg transition-all duration-300 border-0 shadow-md">
+                            <Card key={category._id} className="hover:shadow-lg transition-all duration-300 border-0 shadow-md">
                                 <CardHeader className="pb-3">
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-3">
@@ -129,13 +131,13 @@ const Categories = () => {
                                         </div>
                                         <div className="flex items-center gap-1">
                                             <button
-                                                onClick={() => handleEdit(category.id)}
+                                                onClick={() => handleEdit(category)}
                                                 className="p-1 hover:bg-gray-100 rounded-md transition-colors"
                                             >
                                                 <Edit2 className="w-4 h-4 text-gray-500" />
                                             </button>
                                             <button
-                                                onClick={() => handleDelete(category.id)}
+                                                onClick={() => handleDelete(category)}
                                                 className="p-1 hover:bg-red-100 rounded-md transition-colors"
                                             >
                                                 <Trash2 className="w-4 h-4 text-red-500" />
@@ -145,29 +147,16 @@ const Categories = () => {
                                 </CardHeader>
                                 <CardContent className="pt-0">
                                     <div className="space-y-3">
-                                        {category.description && (
-                                            <p className="text-sm text-gray-600">{category.description}</p>
-                                        )}
-                                        
-                                        <div className="flex items-center justify-between text-sm">
-                                            <span className="text-gray-500">Status:</span>
-                                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                                category.isActive 
-                                                    ? 'bg-green-100 text-green-700' 
-                                                    : 'bg-gray-100 text-gray-700'
-                                            }`}>
-                                                {category.isActive ? 'Active' : 'Inactive'}
-                                            </span>
-                                        </div>
 
-                                        {category.budget && (
+
+                                        {/* {category.budget && (
                                             <div className="flex items-center justify-between text-sm">
                                                 <span className="text-gray-500">Budget:</span>
                                                 <span className="font-semibold text-gray-900">
                                                     ₹{category.budget.toLocaleString()}
                                                 </span>
                                             </div>
-                                        )}
+                                        )} */}
 
                                         {category.createdAt && (
                                             <div className="flex items-center justify-between text-sm">
@@ -187,7 +176,7 @@ const Categories = () => {
                         <Folder className="w-16 h-16 mb-4 opacity-50" />
                         <h3 className="text-lg font-semibold mb-2">No Categories Found</h3>
                         <p className="text-center mb-4">
-                            {searchTerm 
+                            {searchTerm
                                 ? `No categories match "${searchTerm}". Try a different search term.`
                                 : "You haven't created any categories yet. Add your first category to get started."
                             }
@@ -199,6 +188,29 @@ const Categories = () => {
                     </div>
                 )}
             </div>
+
+            <AddCategoryModal
+                dialogOpen={addCategoryDialogOpen}
+                setDialogOpen={setAddCategoryDialogOpen}
+                onSuccess={refreshData}
+            />
+
+            <EditCategoryModal
+                dialogOpen={dialogOpen}
+                setDialogOpen={setDialogOpen}
+                onSuccess={refreshData}
+                category={selectedCategory}
+            />
+
+            <DeleteConfirmModal
+                open={deleteDialogOpen}
+                setOpen={setDeleteDialogOpen}
+                onConfirm={confirmDelete}
+                title="Delete Category"
+                description={`Are you sure you want to delete "${categoryToDelete?.name}"?`}
+            />
+
+
         </DashboardLayout>
     );
 };

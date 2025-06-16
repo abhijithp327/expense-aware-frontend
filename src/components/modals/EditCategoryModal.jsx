@@ -15,6 +15,7 @@ import { useDispatch } from "react-redux";
 import { toast } from "react-toastify";
 import { updateCategory } from "../../redux/slices/categorySlice";
 
+
 const EditCategoryModal = ({ dialogOpen, setDialogOpen, category, onSuccess }) => {
   const dispatch = useDispatch();
 

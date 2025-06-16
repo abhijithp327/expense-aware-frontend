@@ -40,6 +40,7 @@ const DashboardLayout = ({ children, title, description, showMonthFilter = false
 
     const handleLogout = () => {
         dispatch(logout());
+        navigate('/auth');
         toast.success("User Logged Out Successfully");
     };
 
