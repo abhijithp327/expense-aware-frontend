@@ -1,4 +1,4 @@
-import { deleteCategory } from '../../../../backend/src/controllers/category.controller';
+
 import axios from '../lib/axios';
 
 const category = {
